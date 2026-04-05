@@ -11,12 +11,12 @@ print(f"Extracted {len(df)} rows")
 
 print("\n[LOADING] Raw data to PostgreSQL...")
 
-YOUR_PASSWORD = "qweflx7123"  # Change to your password
+YOUR_PASSWORD = "password" #not my password
 
 conn_string = f"postgresql://postgres:{YOUR_PASSWORD}@localhost:5432/superstore_elt"
 engine = create_engine(conn_string)
 
-# Load raw data
+
 df.to_sql("raw_sales", engine, if_exists="replace", index=False)
 print(f"Loaded {len(df)} rows into 'raw_sales' table")
 
