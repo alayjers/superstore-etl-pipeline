@@ -5,15 +5,10 @@ print("=" * 50)
 print("ELT PIPELINE WITH POSTGRESQL")
 print("=" * 50)
 
-# ============================================
-# STEP 1: EXTRACT
-# ============================================
+
 df = pd.read_csv("C:/Users/gutie/.cache/kagglehub/datasets/rohitsahoo/sales-forecasting/versions/2/train.csv")
 print(f"Extracted {len(df)} rows")
 
-# ============================================
-# STEP 2: LOAD to PostgreSQL
-# ============================================
 print("\n[LOADING] Raw data to PostgreSQL...")
 
 YOUR_PASSWORD = "qweflx7123"  # Change to your password
@@ -25,13 +20,11 @@ engine = create_engine(conn_string)
 df.to_sql("raw_sales", engine, if_exists="replace", index=False)
 print(f"Loaded {len(df)} rows into 'raw_sales' table")
 
-# ============================================
-# STEP 3: TRANSFORM (using SQL)
-# ============================================
+
 print("\n[TRANSFORMING] Using SQL...")
 
 with engine.connect() as conn:
-    # Create cleaned table with date parsing
+
     conn.execute(text("""
         CREATE TABLE sales_cleaned AS
         SELECT 
@@ -48,7 +41,7 @@ with engine.connect() as conn:
     conn.commit()
     print("  - Created sales_cleaned table")
 
-    # Category summary
+
     conn.execute(text("""
         CREATE TABLE category_summary AS
         SELECT 
@@ -63,7 +56,7 @@ with engine.connect() as conn:
     conn.commit()
     print("  - Created category_summary")
 
-    # Region summary
+
     conn.execute(text("""
         CREATE TABLE region_summary AS
         SELECT 
@@ -77,7 +70,7 @@ with engine.connect() as conn:
     conn.commit()
     print("  - Created region_summary")
 
-    # Segment summary
+
     conn.execute(text("""
         CREATE TABLE segment_summary AS
         SELECT 
@@ -91,7 +84,7 @@ with engine.connect() as conn:
     conn.commit()
     print("  - Created segment_summary")
 
-    # Monthly trend
+
     conn.execute(text("""
         CREATE TABLE monthly_trend AS
         SELECT 
@@ -106,7 +99,7 @@ with engine.connect() as conn:
     conn.commit()
     print("  - Created monthly_trend")
 
-    # Top 10 products
+
     conn.execute(text("""
         CREATE TABLE top_products AS
         SELECT 
@@ -120,7 +113,7 @@ with engine.connect() as conn:
     conn.commit()
     print("  - Created top_products")
 
-    # Region and Category cross-analysis
+
     conn.execute(text("""
         CREATE TABLE region_category AS
         SELECT 
@@ -134,9 +127,7 @@ with engine.connect() as conn:
     conn.commit()
     print("  - Created region_category")
 
-# ============================================
-# STEP 4: QUERY RESULTS
-# ============================================
+
 print("\n" + "=" * 50)
 print("QUERY RESULTS")
 print("=" * 50)
@@ -148,28 +139,26 @@ with engine.connect() as conn:
     for row in result:
         print(f"  {row[0]}: ${row[1]:,.2f} ({row[2]} orders, avg ${row[3]:,.2f})")
 
-    # Region summary
+
     result = conn.execute(text("SELECT * FROM region_summary"))
     print("\nREGION SUMMARY:")
     for row in result:
         print(f"  {row[0]}: ${row[1]:,.2f} ({row[2]} orders)")
 
-    # Segment summary
+
     result = conn.execute(text("SELECT * FROM segment_summary"))
     print("\nSEGMENT SUMMARY:")
     for row in result:
         print(f"  {row[0]}: ${row[1]:,.2f} ({row[2]} orders)")
 
-    # Top products
+
     result = conn.execute(text("SELECT * FROM top_products"))
     print("\nTOP 5 PRODUCTS:")
     for i, row in enumerate(result.fetchmany(5), 1):
         product_name = row[0][:45]
         print(f"  {i}. {product_name}... ${row[1]:,.2f}")
 
-# ============================================
-# STEP 5: EXPORT TO CSV
-# ============================================
+
 print("\n[EXPORTING] Results to CSV...")
 
 tables = ['category_summary', 'region_summary', 'segment_summary', 'monthly_trend', 'top_products', 'region_category']
@@ -179,9 +168,7 @@ for table in tables:
     df_export.to_csv(f"postgres_{table}.csv", index=False)
     print(f"  - Exported postgres_{table}.csv")
 
-# ============================================
-# STEP 6: VERIFY
-# ============================================
+
 print("\n" + "=" * 50)
 print("VERIFICATION")
 print("=" * 50)
